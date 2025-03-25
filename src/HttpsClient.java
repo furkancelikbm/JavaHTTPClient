@@ -1,3 +1,5 @@
+import org.json.JSONObject;
+
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.URL;
@@ -37,15 +39,14 @@ public class HttpsClient {
         HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
 
         // Prepare the URL and open connection
-        URL url = new URL("https://192.168.50.91:8443/your-endpoint");
+        URL url = new URL("https://192.168.50.91:8443");  // Ensure the correct endpoint
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
 
         // Set the HTTP method to POST
         connection.setRequestMethod("POST");
 
         // Set the request headers
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        connection.setRequestProperty("Content-Length", "17");
+        connection.setRequestProperty("Content-Type", "application/json");  // JSON content type
 
         // Set connection and read timeouts
         connection.setConnectTimeout(5000);  // Timeout for establishing connection (5 seconds)
@@ -55,11 +56,15 @@ public class HttpsClient {
         connection.setDoOutput(true);
         connection.setDoInput(true);
 
-        // Write the form data to the output stream
-        String data = "name=John&age=30";
-        try (DataOutputStream os = new DataOutputStream(connection.getOutputStream())) {
-            os.writeBytes(data);
-            os.flush();
+        // Create a JSONObject with your data
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", "hahahahahahaha");
+        jsonObject.put("age", 33330);
+
+        // Write the JSON data to the output stream
+        try (OutputStreamWriter osw = new OutputStreamWriter(connection.getOutputStream(), "UTF-8")) {
+            osw.write(jsonObject.toString());  // Use jsonObject.toString() here
+            osw.flush();
         }
 
         // Get the response code and print it
@@ -67,7 +72,7 @@ public class HttpsClient {
         System.out.println("Response Code: " + responseCode);
 
         // Read the response
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
             String inputLine;
             StringBuilder response = new StringBuilder();
             while ((inputLine = in.readLine()) != null) {
