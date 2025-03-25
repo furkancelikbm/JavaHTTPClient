@@ -1,54 +1,82 @@
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 import java.io.*;
 import java.net.URL;
 import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 public class HttpsClient {
-    public static void main(String[] args) {
-        try {
-            // KeyStore'u başlat (CA sertifikalarını içerecek)
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            // CA sertifikasını yükleyin
-            try (InputStream caInput = new FileInputStream("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\rootCA.crt")) {
-                keyStore.load(null, null); // Boş KeyStore oluştur
-                // Burada sadece CA sertifikasını yükleyin
-                keyStore.setCertificateEntry("rootCA", java.security.cert.CertificateFactory.getInstance("X.509").generateCertificate(caInput));
-            }
 
-            // TrustManagerFactory ile CA sertifikasını doğrulama
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(keyStore);
+    public static void main(String[] args) throws Exception {
+        // Enable SSL/TLS debugging (Handshake details, etc.)
+        System.setProperty("javax.net.debug", "ssl,handshake,verbose");
 
-            // SSLContext'i başlat
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, trustManagerFactory.getTrustManagers(), new java.security.SecureRandom());
+        // Enable HTTP connection debugging (request/response)
+        System.setProperty("java.net.debug", "all");
 
-            // HTTPS bağlantısı kurma
-            URL url = new URL("https://192.168.1.61:8443");  // Sunucu IP adresi ve portu
-            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-            connection.setSSLSocketFactory(sslContext.getSocketFactory());
-            connection.setRequestMethod("GET");
+        // Load the custom CA certificate
+        FileInputStream fis = new FileInputStream("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\rootCA.crt");
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
 
-            // İsteği gönder ve sunucudan gelen yanıtı oku
-            int responseCode = connection.getResponseCode();
-            System.out.println("Response Code: " + responseCode);
+        // Create a KeyStore containing the certificate
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null, null);  // Initialize empty KeyStore
+        keyStore.setCertificateEntry("rootCA", cert);
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        // Create a TrustManager that trusts the loaded certificate
+        javax.net.ssl.TrustManagerFactory trustManagerFactory = javax.net.ssl.TrustManagerFactory.getInstance(javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+        javax.net.ssl.TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+
+        // Create an SSLContext using the TrustManager
+        javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
+        sslContext.init(null, trustManagers, new java.security.SecureRandom());
+
+        // Set the default SSLContext to the one we just created
+        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+
+        // Prepare the URL and open connection
+        URL url = new URL("https://192.168.50.91:8443/your-endpoint");
+        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+
+        // Set the HTTP method to POST
+        connection.setRequestMethod("POST");
+
+        // Set the request headers
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        connection.setRequestProperty("Content-Length", "17");
+
+        // Set connection and read timeouts
+        connection.setConnectTimeout(5000);  // Timeout for establishing connection (5 seconds)
+        connection.setReadTimeout(5000);     // Timeout for reading the response (5 seconds)
+
+        // Enable input and output streams
+        connection.setDoOutput(true);
+        connection.setDoInput(true);
+
+        // Write the form data to the output stream
+        String data = "name=John&age=30";
+        try (DataOutputStream os = new DataOutputStream(connection.getOutputStream())) {
+            os.writeBytes(data);
+            os.flush();
+        }
+
+        // Get the response code and print it
+        int responseCode = connection.getResponseCode();
+        System.out.println("Response Code: " + responseCode);
+
+        // Read the response
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
             String inputLine;
             StringBuilder response = new StringBuilder();
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
             }
-            in.close();
-
-            // Yanıtı yazdır
             System.out.println("Response: " + response.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
+        // Close connection
+        connection.disconnect();
     }
 }
