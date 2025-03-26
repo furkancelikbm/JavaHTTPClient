@@ -12,5 +12,6 @@
     <orderEntry type="library" name="io.ktor.client.cio" level="project" />
     <orderEntry type="library" name="io.ktor.serialization.jvm" level="project" />
     <orderEntry type="library" name="json" level="project" />
+    <orderEntry type="library" name="google.code.gson" level="project" />
   </component>
 </module>

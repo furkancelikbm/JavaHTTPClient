@@ -58,8 +58,8 @@ public class HttpsClient {
 
         // Create a JSONObject with your data
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("name", "hahahahahahaha");
-        jsonObject.put("age", 33330);
+        jsonObject.put("name", "test");
+        jsonObject.put("age", 123456);
 
         // Write the JSON data to the output stream
         try (OutputStreamWriter osw = new OutputStreamWriter(connection.getOutputStream(), "UTF-8")) {
