@@ -1,8 +1,6 @@
 import com.google.gson.Gson;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
+
+import javax.net.ssl.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -229,52 +227,51 @@ public class POSAppView {
         return jsonBuilder.toString();
     }
 
-    private void sendPreviewDataToServer(String previewDataJson) {
+    public void sendPreviewDataToServer(String previewDataJson) {
         try {
-            // Load the custom CA certificate
-            FileInputStream fis = new FileInputStream("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\rootCA.crt");
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
+            char[] keyStorePassword = "123456".toCharArray(); // p12 dosyasının şifresi
 
-            // Create a KeyStore containing the certificate
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(null, null);  // Initialize empty KeyStore
-            keyStore.setCertificateEntry("rootCA", cert);
+            // 1. İstemci KeyStore'u yükle
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(new FileInputStream("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\client-keystore.p12"), keyStorePassword);  // Keystore dosyasının yolu
 
-            // Create a TrustManager that trusts the loaded certificate
+            // 2. KeyManagerFactory ile istemci KeyManager'ı oluştur
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keyStore, keyStorePassword);
+
+            // 3. Client TrustStore'u yükle
+            KeyStore trustStore = KeyStore.getInstance("PKCS12");
+            trustStore.load(new FileInputStream("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\client-truststore.p12"), "123456".toCharArray());  // TrustStore dosyasının yolu
+
+            // 4. TrustManagerFactory oluştur
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(keyStore);
-            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+            trustManagerFactory.init(trustStore);
 
-            // Create an SSLContext using the TrustManager
+            // 5. SSLContext oluştur
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, trustManagers, new java.security.SecureRandom());
+            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new java.security.SecureRandom());
 
-            // Set the default SSLContext to the one we just created
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-
-            // Prepare the URL and open connection
-            URL url = new URL("https://192.168.50.91:8443");  // Ensure the correct endpoint
+            // 6. HTTPS Bağlantısını Ayarla
+            URL url = new URL("https://192.168.1.61:8443");
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection.setSSLSocketFactory(sslContext.getSocketFactory());
 
-            // Set request method and headers
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
-
-            // Enable input and output streams
             connection.setDoOutput(true);
 
-            // Write the JSON data to the output stream
-            try (OutputStreamWriter osw = new OutputStreamWriter(connection.getOutputStream(), "UTF-8")) {
-                osw.write(previewDataJson);  // Send the preview data as JSON
+            // 7. JSON Veri Gönder
+            try (OutputStream os = connection.getOutputStream();
+                 OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8")) {
+                osw.write(previewDataJson);
                 osw.flush();
             }
 
-            // Get the response code and print it
+            // 8. Yanıtı Al
             int responseCode = connection.getResponseCode();
             System.out.println("Response Code: " + responseCode);
 
-            // Read the response from the server
+            // 9. Sunucudan gelen yanıtı oku
             try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
                 String inputLine;
                 StringBuilder response = new StringBuilder();
@@ -286,11 +283,10 @@ public class POSAppView {
 
             connection.disconnect();
         } catch (Exception e) {
-            if (e instanceof IOException) {
-                e.printStackTrace();  // Handle IOException specifically
-            } else {
-                e.printStackTrace();  // Handle other exceptions
-            }
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
+
+
 }
