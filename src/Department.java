@@ -1,8 +1,8 @@
 import java.util.UUID;
 
 public class Department {
+    private final String depId = UUID.randomUUID().toString(); // Final çünkü değişmemeli
     private String depName;
-    private String depId;  // Use String to hold UUID
     private double depKdv;
     private double depPrice;
     private int depCount;
@@ -10,27 +10,22 @@ public class Department {
     // Constructor
     public Department(String depName, double depKdv, double depPrice, int depCount) {
         this.depName = depName;
-        this.depId = UUID.randomUUID().toString();  // Generate unique depId using UUID
         this.depKdv = depKdv;
         this.depPrice = depPrice;
         this.depCount = depCount;
     }
 
     // Getters and Setters
+    public String getDepId() {
+        return depId;
+    }
+
     public String getDepName() {
         return depName;
     }
 
     public void setDepName(String depName) {
         this.depName = depName;
-    }
-
-    public String getDepId() {
-        return depId;
-    }
-
-    public void setDepId(String depId) {
-        this.depId = depId;
     }
 
     public double getDepKdv() {
@@ -59,12 +54,7 @@ public class Department {
 
     @Override
     public String toString() {
-        return "Department{" +
-                "depName='" + depName + '\'' +
-                ", depId='" + depId + '\'' +
-                ", depKdv=" + depKdv +
-                ", depPrice=" + depPrice +
-                ", depCount=" + depCount +
-                '}';
+        return String.format("Department{name='%s', id='%s', kdv=%.2f, price=%.2f, count=%d}",
+                depName, depId, depKdv, depPrice, depCount);
     }
 }
