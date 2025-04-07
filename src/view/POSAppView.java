@@ -50,11 +50,16 @@ public class POSAppView {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setPaint(new GradientPaint(0, 0, new Color(173, 216, 230), getWidth(), 0, new Color(11, 77, 166)));
+
+                // Dikey degrade: Beyazdan koyu maviye geçiş
+                g2d.setPaint(new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), new Color(0, 0, 139)));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
     }
+
+
+
 
     private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new GridLayout(1, 4));  // Arrange buttons horizontally

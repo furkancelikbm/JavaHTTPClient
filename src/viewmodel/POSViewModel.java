@@ -63,7 +63,7 @@ public class POSViewModel {
     private boolean sendDataOverHttps(String jsonData) {
         try {
             SSLContext sslContext = createSSLContext();
-            URL url = new URL("https://192.168.1.61:8443");
+            URL url = new URL("https://192.168.50.91:8443");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             conn.setSSLSocketFactory(sslContext.getSocketFactory());
             conn.setRequestMethod("POST");
