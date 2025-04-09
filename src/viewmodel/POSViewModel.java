@@ -27,6 +27,10 @@ public class POSViewModel {
         departments.add(new Department("D3", 20, 15.0, 0));
         departments.add(new Department("D4", 30, 20.0, 0));
     }
+    // Departman listesinin boyutunu döndüren fonksiyon
+    public int getDepartmentsSize() {
+        return departments.size();  // Liste boyutunu döndürür
+    }
 
     public List<Department> getDepartments() {
         return departments;

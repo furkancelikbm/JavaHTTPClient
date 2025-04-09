@@ -7,12 +7,6 @@ public class GradientPanel extends JPanel {
     private Color startColor = Color.WHITE;
     private Color endColor = new Color(0, 0, 139);
 
-    public void setGradientColors(Color start, Color end) {
-        this.startColor = start;
-        this.endColor = end;
-        repaint();
-    }
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

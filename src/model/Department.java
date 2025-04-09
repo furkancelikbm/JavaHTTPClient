@@ -25,4 +25,5 @@ public class Department {
     public void setDepPrice(double depPrice) { this.depPrice = depPrice; }
     public int getDepCount() { return depCount; }
     public void setDepCount(int depCount) { this.depCount = depCount; }
+
 }

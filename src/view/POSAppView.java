@@ -48,10 +48,10 @@ public class POSAppView {
 
 
     private JPanel createTopPanel() {
-        JPanel topPanel = new JPanel(new GridLayout(1, 4));
+        JPanel topPanel = new JPanel(new GridLayout(1, viewModel.getDepartmentsSize()));
         topPanel.setOpaque(false); // Arka planı degrade göster
         for (Department dept : viewModel.getDepartments()) {
-            JButton button = new JButton(generateHtml(dept));
+            JButton button = new JButton(generateHtmlButton(dept));
             styleDepartmentButton(button);
             button.addActionListener(e -> handleDepartmentClick(dept));
             topPanel.add(button);
@@ -131,6 +131,14 @@ public class POSAppView {
                         + "<span style='font-size: 8px;'>KDV: %.0f%%</span></div></html>",
                 dept.getDepName(), dept.getDepPrice(), dept.getDepCount(), dept.getDepKdv());
     }
+    private String generateHtmlButton(Department dept) {
+        return String.format("<html><div style='text-align: center;'>"
+                        + "<span style='font-size: 10px;'>%s</span><br>"
+                        + "<span style='font-size: 8px;'>Price: %.2f</span><br>"
+                        + "<span style='font-size: 8px;'>KDV: %.0f%%</span></div></html>",
+                dept.getDepName(), dept.getDepPrice(), dept.getDepKdv());
+    }
+
 
     private void styleDepartmentButton(JButton button) {
         button.setPreferredSize(new Dimension(100, 100));
