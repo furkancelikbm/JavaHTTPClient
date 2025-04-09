@@ -13,27 +13,32 @@ import java.security.KeyStore;
 import java.util.*;
 
 public class POSViewModel {
-    private final PaymentModel model;
-    private final List<Department> departments = new ArrayList<>();
+    private PaymentModel model;  // Add this line to store PaymentModel
+    private List<Department> departments = new ArrayList<>();
 
-    public POSViewModel(PaymentModel model) {
+
+
+    public POSViewModel(PaymentModel model) {  // Ensure this constructor exists
         this.model = model;
+        SQLiteHelper.initializeDatabase();
+
         initDepartments();
     }
 
     private void initDepartments() {
-        departments.add(new Department("D1", 1, 18.0, 0));
-        departments.add(new Department("D2", 10, 8.0, 0));
-        departments.add(new Department("D3", 20, 15.0, 0));
-        departments.add(new Department("D4", 30, 20.0, 0));
+        departments = SQLiteHelper.getDepartmentsFromDatabase(); // Veritabanından departmanları alıyoruz
     }
-    // Departman listesinin boyutunu döndüren fonksiyon
+
     public int getDepartmentsSize() {
         return departments.size();  // Liste boyutunu döndürür
     }
 
     public List<Department> getDepartments() {
         return departments;
+    }
+
+    public void addDepartment(Department dept) {
+        departments.add(dept);
     }
 
     public void increaseCount(Department dept) {

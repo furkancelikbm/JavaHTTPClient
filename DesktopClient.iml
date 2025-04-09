@@ -13,5 +13,7 @@
     <orderEntry type="library" name="io.ktor.serialization.jvm" level="project" />
     <orderEntry type="library" name="json" level="project" />
     <orderEntry type="library" name="google.code.gson" level="project" />
+    <orderEntry type="library" name="io.github.willena.sqlite.jdbc4" level="project" />
+    <orderEntry type="library" name="slf4j.simple" level="project" />
   </component>
 </module>

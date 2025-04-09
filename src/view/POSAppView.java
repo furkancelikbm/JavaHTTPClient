@@ -23,7 +23,7 @@ public class POSAppView {
 
     private void initialize() {
         frame = createFrame();
-        panel = new GradientPanel(); // Artık özel panel kullanılıyor
+        panel = new GradientPanel();
         topPanel = createTopPanel();
         bottomPanel = createBottomPanel();
 
@@ -31,38 +31,45 @@ public class POSAppView {
         payButton.setPreferredSize(new Dimension(120, 50));
         payButton.addActionListener(e -> processPayment());
 
+        JButton departmentManagementButton = new JButton("Departman Yönetimi");
+        departmentManagementButton.setPreferredSize(new Dimension(160, 50));
+        departmentManagementButton.addActionListener(e -> openDepartmentManagement());
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(payButton);
+        buttonPanel.add(departmentManagementButton);
+
         panel.setLayout(new BorderLayout());
         panel.add(topPanel, BorderLayout.NORTH);
         panel.add(bottomPanel, BorderLayout.CENTER);
         frame.add(panel, BorderLayout.CENTER);
-        frame.add(payButton, BorderLayout.SOUTH);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
         frame.setVisible(true);
     }
 
     private JFrame createFrame() {
         JFrame frame = new JFrame("POS Uygulaması");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
+        frame.setSize(800, 600);
         return frame;
     }
 
-
     private JPanel createTopPanel() {
-        JPanel topPanel = new JPanel(new GridLayout(1, viewModel.getDepartmentsSize()));
-        topPanel.setOpaque(false); // Arka planı degrade göster
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setOpaque(false);
         for (Department dept : viewModel.getDepartments()) {
             JButton button = new JButton(generateHtmlButton(dept));
             styleDepartmentButton(button);
             button.addActionListener(e -> handleDepartmentClick(dept));
-            topPanel.add(button);
+            panel.add(button);
         }
-        return topPanel;
+        return panel;
     }
 
     private JPanel createBottomPanel() {
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        bottomPanel.setOpaque(false); // degrade arkaya uyumlu
-        return bottomPanel;
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        panel.setOpaque(false);
+        return panel;
     }
 
     private void handleDepartmentClick(Department dept) {
@@ -88,13 +95,8 @@ public class POSAppView {
         JButton previewBtn = new JButton(generateHtml(dept));
         styleDepartmentButton(previewBtn);
 
-        ImageIcon deleteIcon = new ImageIcon("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\delete.png");
-        deleteIcon = new ImageIcon(deleteIcon.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
-        JButton deleteBtn = new JButton();
+        JButton deleteBtn = new JButton("X");
         deleteBtn.setPreferredSize(new Dimension(20, 20));
-        deleteBtn.setIcon(deleteIcon);
-        deleteBtn.setBorderPainted(false);
-        deleteBtn.setContentAreaFilled(false);
         deleteBtn.addActionListener(e -> removeItem(dept, itemPanel, previewBtn));
 
         JPanel deletePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -106,9 +108,6 @@ public class POSAppView {
 
         bottomPanel.add(itemPanel);
         previewItems.put(dept, itemPanel);
-
-        bottomPanel.revalidate();
-        bottomPanel.repaint();
     }
 
     private void removeItem(Department dept, JPanel itemPanel, JButton previewBtn) {
@@ -123,6 +122,62 @@ public class POSAppView {
         bottomPanel.repaint();
     }
 
+    private void processPayment() {
+        String result = viewModel.processPaymentAndSend(previewItems);
+        JOptionPane.showMessageDialog(frame, result);
+    }
+
+    private void openDepartmentManagement() {
+        JTextField nameField = new JTextField();
+        JTextField priceField = new JTextField();
+        JTextField kdvField = new JTextField();
+        JTextField countField = new JTextField();
+
+        Object[] message = {
+                "Departman Adı:", nameField,
+                "Fiyat:", priceField,
+                "KDV (%):", kdvField,
+                "Adet:", countField
+        };
+
+        int option = JOptionPane.showConfirmDialog(frame, message, "Departman Ekle", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            try {
+                String depName = nameField.getText();
+                double depPrice = Double.parseDouble(priceField.getText());
+                double depKdv = Double.parseDouble(kdvField.getText());
+                int depCount = Integer.parseInt(countField.getText());
+
+                Department dept = new Department(depName, depKdv, depPrice, depCount);
+
+                // 💾 Veritabanına kaydet
+                viewmodel.SQLiteHelper.addDepartmentToDatabase(dept);
+
+                // ➕ ViewModel'e de ekle
+                viewModel.addDepartment(dept);
+
+                // 🖼️ UI'yi güncelle
+                updateDepartmentsUI();
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(frame, "Geçersiz sayı girdiniz!", "Hata", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+
+    private void updateDepartmentsUI() {
+        topPanel.removeAll();
+        for (Department dept : viewModel.getDepartments()) {
+            JButton button = new JButton(generateHtmlButton(dept));
+            styleDepartmentButton(button);
+            button.addActionListener(e -> handleDepartmentClick(dept));
+            topPanel.add(button);
+        }
+        topPanel.revalidate();
+        topPanel.repaint();
+    }
+
     private String generateHtml(Department dept) {
         return String.format("<html><div style='text-align: center;'>"
                         + "<span style='font-size: 10px;'>%s</span><br>"
@@ -131,6 +186,7 @@ public class POSAppView {
                         + "<span style='font-size: 8px;'>KDV: %.0f%%</span></div></html>",
                 dept.getDepName(), dept.getDepPrice(), dept.getDepCount(), dept.getDepKdv());
     }
+
     private String generateHtmlButton(Department dept) {
         return String.format("<html><div style='text-align: center;'>"
                         + "<span style='font-size: 10px;'>%s</span><br>"
@@ -139,17 +195,9 @@ public class POSAppView {
                 dept.getDepName(), dept.getDepPrice(), dept.getDepKdv());
     }
 
-
     private void styleDepartmentButton(JButton button) {
         button.setPreferredSize(new Dimension(100, 100));
-        button.setMargin(new Insets(10, 10, 10, 10));
-        button.setVerticalTextPosition(SwingConstants.CENTER);
-        button.setHorizontalTextPosition(SwingConstants.CENTER);
         button.setFont(new Font("Arial", Font.PLAIN, 10));
-    }
-
-    private void processPayment() {
-        String result = viewModel.processPaymentAndSend(previewItems);
-        JOptionPane.showMessageDialog(frame, result);
+        button.setMargin(new Insets(5, 5, 5, 5));
     }
 }
