@@ -10,7 +10,8 @@ import java.util.Map;
 
 public class POSAppView {
     private JFrame frame;
-    private JPanel panel, topPanel, bottomPanel;
+    private GradientPanel panel;
+    private JPanel topPanel, bottomPanel;
     private JButton payButton;
     private POSViewModel viewModel;
     private final Map<Department, JPanel> previewItems = new HashMap<>();
@@ -22,7 +23,7 @@ public class POSAppView {
 
     private void initialize() {
         frame = createFrame();
-        panel = createPanel();
+        panel = new GradientPanel(); // Artık özel panel kullanılıyor
         topPanel = createTopPanel();
         bottomPanel = createBottomPanel();
 
@@ -33,8 +34,8 @@ public class POSAppView {
         panel.setLayout(new BorderLayout());
         panel.add(topPanel, BorderLayout.NORTH);
         panel.add(bottomPanel, BorderLayout.CENTER);
-        frame.add(panel, BorderLayout.CENTER);  // Add panel with top and bottom panels
-        frame.add(payButton, BorderLayout.SOUTH);  // Add payment button at the bottom
+        frame.add(panel, BorderLayout.CENTER);
+        frame.add(payButton, BorderLayout.SOUTH);
         frame.setVisible(true);
     }
 
@@ -45,26 +46,10 @@ public class POSAppView {
         return frame;
     }
 
-    private JPanel createPanel() {
-        return new JPanel() {
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-
-                // Dikey degrade: Beyazdan koyu maviye geçiş
-                g2d.setPaint(new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), new Color(0, 0, 139)));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-    }
-
-
-
 
     private JPanel createTopPanel() {
-        JPanel topPanel = new JPanel(new GridLayout(1, 4));  // Arrange buttons horizontally
-        topPanel.setBackground(new Color(173, 216, 230));
-
+        JPanel topPanel = new JPanel(new GridLayout(1, 4));
+        topPanel.setOpaque(false); // Arka planı degrade göster
         for (Department dept : viewModel.getDepartments()) {
             JButton button = new JButton(generateHtml(dept));
             styleDepartmentButton(button);
@@ -76,7 +61,7 @@ public class POSAppView {
 
     private JPanel createBottomPanel() {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        bottomPanel.setBackground(new Color(173, 216, 230));
+        bottomPanel.setOpaque(false); // degrade arkaya uyumlu
         return bottomPanel;
     }
 
@@ -103,12 +88,11 @@ public class POSAppView {
         JButton previewBtn = new JButton(generateHtml(dept));
         styleDepartmentButton(previewBtn);
 
-        // Silme butonunu bir ikonla değiştiriyoruz
         ImageIcon deleteIcon = new ImageIcon("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\delete.png");
-        deleteIcon = new ImageIcon(deleteIcon.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));  // İkonu boyutlandırma
+        deleteIcon = new ImageIcon(deleteIcon.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
         JButton deleteBtn = new JButton();
         deleteBtn.setPreferredSize(new Dimension(20, 20));
-        deleteBtn.setIcon(deleteIcon);  // İkonu ekliyoruz
+        deleteBtn.setIcon(deleteIcon);
         deleteBtn.setBorderPainted(false);
         deleteBtn.setContentAreaFilled(false);
         deleteBtn.addActionListener(e -> removeItem(dept, itemPanel, previewBtn));
@@ -123,10 +107,9 @@ public class POSAppView {
         bottomPanel.add(itemPanel);
         previewItems.put(dept, itemPanel);
 
-        bottomPanel.revalidate();  // Görünürlük için yeniden düzenleme
-        bottomPanel.repaint();  // Paneli yeniden çizme
+        bottomPanel.revalidate();
+        bottomPanel.repaint();
     }
-
 
     private void removeItem(Department dept, JPanel itemPanel, JButton previewBtn) {
         viewModel.decreaseCount(dept);
