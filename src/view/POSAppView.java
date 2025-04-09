@@ -2,11 +2,14 @@ package view;
 
 import model.Department;
 import viewmodel.POSViewModel;
+import viewmodel.SQLiteHelper;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import static viewmodel.SQLiteHelper.removeDepartmentFromDatabase;
 
 public class POSAppView {
     private JFrame frame;
@@ -38,6 +41,12 @@ public class POSAppView {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         buttonPanel.add(payButton);
         buttonPanel.add(departmentManagementButton);
+
+        JButton deleteDepartmentButton = new JButton("Departman Sil");
+        deleteDepartmentButton.setPreferredSize(new Dimension(160, 50));
+        deleteDepartmentButton.addActionListener(e -> deleteDepartment());
+
+        buttonPanel.add(deleteDepartmentButton); // Ekledim
 
         panel.setLayout(new BorderLayout());
         panel.add(topPanel, BorderLayout.NORTH);
@@ -150,13 +159,13 @@ public class POSAppView {
 
                 Department dept = new Department(depName, depKdv, depPrice, depCount);
 
-                // 💾 Veritabanına kaydet
-                viewmodel.SQLiteHelper.addDepartmentToDatabase(dept);
+                // Veritabanına kaydet
+                SQLiteHelper.addDepartmentToDatabase(dept);
 
-                // ➕ ViewModel'e de ekle
+                // ViewModel'e de ekle
                 viewModel.addDepartment(dept);
 
-                // 🖼️ UI'yi güncelle
+                // UI'yi güncelle
                 updateDepartmentsUI();
 
             } catch (NumberFormatException e) {
@@ -164,7 +173,6 @@ public class POSAppView {
             }
         }
     }
-
 
     private void updateDepartmentsUI() {
         topPanel.removeAll();
@@ -199,5 +207,37 @@ public class POSAppView {
         button.setPreferredSize(new Dimension(100, 100));
         button.setFont(new Font("Arial", Font.PLAIN, 10));
         button.setMargin(new Insets(5, 5, 5, 5));
+    }
+
+    private void deleteDepartment() {
+        java.util.List<Department> departments = viewModel.getDepartments();
+        if (departments.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Silinecek departman yok!", "Uyarı", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Department[] depArray = departments.toArray(new Department[0]);
+        Department selected = (Department) JOptionPane.showInputDialog(
+                frame,
+                "Silinecek Departmanı Seçin:",
+                "Departman Sil",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                depArray,
+                depArray[0]
+        );
+
+        if (selected != null) {
+            // Veritabanından sil
+            removeDepartmentFromDatabase(selected);
+
+            // ViewModel'den çıkar
+            viewModel.removeDepartment(selected);
+
+            // UI'yi güncelle
+            updateDepartmentsUI();
+
+            JOptionPane.showMessageDialog(frame, "Departman silindi: " + selected.getDepName());
+        }
     }
 }

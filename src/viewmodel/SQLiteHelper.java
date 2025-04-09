@@ -64,6 +64,20 @@ public class SQLiteHelper {
         return departments;
     }
 
+    public static void removeDepartmentFromDatabase(Department dept) {
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM departments WHERE name = ? AND price = ? AND kdv = ?")) {
+            stmt.setString(1, dept.getDepName());
+            stmt.setDouble(2, dept.getDepPrice());
+            stmt.setDouble(3, dept.getDepKdv());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
 
 }

@@ -2,9 +2,11 @@ package model;
 
 public class Department {
     private String depName;
-    private double depKdv;
     private double depPrice;
+    private double depKdv;
     private int depCount;
+
+
 
     public Department(String depName, double depKdv, double depPrice, int depCount) {
         this.depName = depName;
@@ -43,5 +45,12 @@ public class Department {
 
     public void setDepCount(int depCount) {
         this.depCount = depCount;
+    }
+
+    // Constructor, getter ve setter metodları vb.
+
+    @Override
+    public String toString() {
+        return String.format("%s - Fiyat: %.2f - KDV: %.0f%%", depName, depPrice, depKdv);
     }
 }
