@@ -3,6 +3,7 @@ package viewmodel;
 import com.google.gson.Gson;
 import model.Department;
 import model.PaymentModel;
+import repository.SQLiteHelper;
 
 import javax.net.ssl.*;
 import javax.swing.*;

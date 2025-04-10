@@ -47,8 +47,6 @@ public class Department {
         this.depCount = depCount;
     }
 
-    // Constructor, getter ve setter metodları vb.
-
     @Override
     public String toString() {
         return String.format("%s - Fiyat: %.2f - KDV: %.0f%%", depName, depPrice, depKdv);

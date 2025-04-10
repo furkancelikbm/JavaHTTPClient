@@ -2,14 +2,14 @@ package view;
 
 import model.Department;
 import viewmodel.POSViewModel;
-import viewmodel.SQLiteHelper;
+import repository.SQLiteHelper;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static viewmodel.SQLiteHelper.removeDepartmentFromDatabase;
+import static repository.SQLiteHelper.removeDepartmentFromDatabase;
 
 public class POSAppView {
     private JFrame frame;
@@ -104,9 +104,16 @@ public class POSAppView {
         JButton previewBtn = new JButton(generateHtml(dept));
         styleDepartmentButton(previewBtn);
 
-        JButton deleteBtn = new JButton("X");
-        deleteBtn.setPreferredSize(new Dimension(20, 20));
+        ImageIcon originalIcon = new ImageIcon("C:\\Users\\furka\\IdeaProjects\\DesktopClient\\src\\delete.png"); // PNG dosyanın yolu
+        Image scaledImage = originalIcon.getImage().getScaledInstance(20 , 20, Image.SCALE_SMOOTH);
+        ImageIcon deleteIcon = new ImageIcon(scaledImage);
+
+        JButton deleteBtn = new JButton(deleteIcon);
+        deleteBtn.setPreferredSize(new Dimension(20, 20)); // Butonun boyutu
+        deleteBtn.setToolTipText("Delete");
         deleteBtn.addActionListener(e -> removeItem(dept, itemPanel, previewBtn));
+
+
 
         JPanel deletePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         deletePanel.setOpaque(false);
@@ -140,13 +147,15 @@ public class POSAppView {
         JTextField nameField = new JTextField();
         JTextField priceField = new JTextField();
         JTextField kdvField = new JTextField();
-        JTextField countField = new JTextField();
+        JTextField countField = new JTextField("1"); // Set default value to 1
+
+        // Disable the count field to prevent user input
+        countField.setEditable(false);
 
         Object[] message = {
                 "Departman Adı:", nameField,
                 "Fiyat:", priceField,
                 "KDV (%):", kdvField,
-                "Adet:", countField
         };
 
         int option = JOptionPane.showConfirmDialog(frame, message, "Departman Ekle", JOptionPane.OK_CANCEL_OPTION);
@@ -155,17 +164,18 @@ public class POSAppView {
                 String depName = nameField.getText();
                 double depPrice = Double.parseDouble(priceField.getText());
                 double depKdv = Double.parseDouble(kdvField.getText());
-                int depCount = Integer.parseInt(countField.getText());
+                int depCount = 1; // Always set to 1
 
+                // Create the Department object
                 Department dept = new Department(depName, depKdv, depPrice, depCount);
 
-                // Veritabanına kaydet
+                // Save to database
                 SQLiteHelper.addDepartmentToDatabase(dept);
 
-                // ViewModel'e de ekle
+                // Add to ViewModel
                 viewModel.addDepartment(dept);
 
-                // UI'yi güncelle
+                // Update the UI
                 updateDepartmentsUI();
 
             } catch (NumberFormatException e) {
@@ -173,6 +183,7 @@ public class POSAppView {
             }
         }
     }
+
 
     private void updateDepartmentsUI() {
         topPanel.removeAll();
