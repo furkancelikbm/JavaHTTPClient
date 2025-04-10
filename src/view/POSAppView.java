@@ -30,11 +30,11 @@ public class POSAppView {
         topPanel = createTopPanel();
         bottomPanel = createBottomPanel();
 
-        payButton = new JButton("Ödeme Al");
+        payButton = new JButton("\uD83D\uDCB3 Ödeme Al");
         payButton.setPreferredSize(new Dimension(120, 50));
         payButton.addActionListener(e -> processPayment());
 
-        JButton departmentManagementButton = new JButton("Departman Yönetimi");
+        JButton departmentManagementButton = new JButton("➕ Departman Ekle");
         departmentManagementButton.setPreferredSize(new Dimension(160, 50));
         departmentManagementButton.addActionListener(e -> openDepartmentManagement());
 
@@ -42,7 +42,7 @@ public class POSAppView {
         buttonPanel.add(payButton);
         buttonPanel.add(departmentManagementButton);
 
-        JButton deleteDepartmentButton = new JButton("Departman Sil");
+        JButton deleteDepartmentButton = new JButton("❌ Departman Sil");
         deleteDepartmentButton.setPreferredSize(new Dimension(160, 50));
         deleteDepartmentButton.addActionListener(e -> deleteDepartment());
 
